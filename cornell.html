@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Méthode Cornell - Prise de notes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .cornell-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 2px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            height: 600px;
+        }
+
+        .title {
+            grid-column: 1 / -1;
+            padding: 1rem;
+            background: white;
+        }
+
+        .cues {
+            background: white;
+            padding: 1rem;
+            resize: none;
+        }
+
+        .notes {
+            background: white;
+            padding: 1rem;
+            resize: none;
+        }
+
+        .summary {
+            grid-column: 1 / -1;
+            background: white;
+            padding: 1rem;
+            resize: none;
+        }
+
+        .instructions {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            font-family: inherit;
+            padding: 0.5rem;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: 2px solid #007bff;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .controls {
+            margin-top: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Méthode Cornell de prise de notes</h1>
+        </div>
+
+        <div class="cornell-container" id="cornell-notes">
+            <div class="title">
+                <input type="text" id="title-input" placeholder="Titre de la note" style="width: 100%; padding: 0.5rem; border: none; font-size: 1.2rem;">
+            </div>
+            <textarea class="cues" placeholder="Zone des points clés&#10;&#10;• Notez ici les mots-clés&#10;• Questions importantes&#10;• Concepts principaux"></textarea>
+            <textarea class="notes" placeholder="Zone de notes principales&#10;&#10;Prenez vos notes détaillées ici..."></textarea>
+            <textarea class="summary" placeholder="Résumé&#10;Écrivez un bref résumé de vos notes (2-3 phrases)"></textarea>
+        </div>
+
+        <div class="controls">
+            <button onclick="saveNotes()">Sauvegarder</button>
+            <button onclick="exportPDF()">Exporter en PDF</button>
+            <button onclick="clearNotes()">Effacer</button>
+        </div>
+        <h3>Ce site web a été fait par RAM</h3>
+
+        <div class="instructions">
+            <h3>Comment utiliser la méthode Cornell :</h3>
+            <p>1. <strong>Titre</strong> : Écrivez le sujet de vos notes en haut.</p>
+            <p>2. <strong>Points clés</strong> (colonne de gauche) : Notez les mots-clés, questions et concepts principaux.</p>
+            <p>3. <strong>Notes principales</strong> (colonne de droite) : Prenez vos notes détaillées pendant le cours ou la lecture.</p>
+            <p>4. <strong>Résumé</strong> (bas de page) : Après avoir terminé, écrivez un bref résumé des points essentiels.</p>
+        </div>
+    </div>
+
+    <script>
+        function saveNotes() {
+            const notesData = {
+                title: document.getElementById('title-input').value,
+                cues: document.querySelector('.cues').value,
+                notes: document.querySelector('.notes').value,
+                summary: document.querySelector('.summary').value,
+                date: new Date().toLocaleDateString()
+            };
+            
+            localStorage.setItem('cornellNotes_' + Date.now(), JSON.stringify(notesData));
+            alert('Notes sauvegardées !');
+        }
+
+        function clearNotes() {
+            if (confirm('Êtes-vous sûr de vouloir effacer toutes les notes ?')) {
+                document.getElementById('title-input').value = '';
+                document.querySelector('.cues').value = '';
+                document.querySelector('.notes').value = '';
+                document.querySelector('.summary').value = '';
+            }
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const title = document.getElementById('title-input').value || 'Notes Cornell';
+            const cues = document.querySelector('.cues').value;
+            const notes = document.querySelector('.notes').value;
+            const summary = document.querySelector('.summary').value;
+            const date = new Date().toLocaleDateString();
+
+            // Configuration du PDF
+            doc.setFont('helvetica');
+            doc.setFontSize(20);
+            doc.text(title, 20, 20);
+            
+            doc.setFontSize(12);
+            doc.text(`Date: ${date}`, 20, 30);
+            
+            doc.setFontSize(16);
+            doc.text('Points clés:', 20, 45);
+            doc.setFontSize(12);
+            doc.text(doc.splitTextToSize(cues, 170), 20, 55);
+            
+            const cuesHeight = doc.getTextDimensions(doc.splitTextToSize(cues, 170)).h;
+            const notesY = 55 + cuesHeight + 10;
+            
+            doc.setFontSize(16);
+            doc.text('Notes principales:', 20, notesY);
+            doc.setFontSize(12);
+            doc.text(doc.splitTextToSize(notes, 170), 20, notesY + 10);
+            
+            const notesHeight = doc.getTextDimensions(doc.splitTextToSize(notes, 170)).h;
+            const summaryY = notesY + 10 + notesHeight + 10;
+            
+            doc.setFontSize(16);
+            doc.text('Résumé:', 20, summaryY);
+            doc.setFontSize(12);
+            doc.text(doc.splitTextToSize(summary, 170), 20, summaryY + 10);
+
+            // Sauvegarde du PDF
+            doc.save(`${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_cornell.pdf`);
+        }
+
+        // Charger les dernières notes sauvegardées au chargement
+        window.onload = function() {
+            const lastNoteKey = Object.keys(localStorage)
+                .filter(key => key.startsWith('cornellNotes_'))
+                .sort()
+                .pop();
+
+            if (lastNoteKey) {
+                const lastNote = JSON.parse(localStorage.getItem(lastNoteKey));
+                document.getElementById('title-input').value = lastNote.title;
+                document.querySelector('.cues').value = lastNote.cues;
+                document.querySelector('.notes').value = lastNote.notes;
+                document.querySelector('.summary').value = lastNote.summary;
+            }
+        }
+    </script>
+</body>
+</html>
