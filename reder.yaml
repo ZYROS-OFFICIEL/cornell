@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: my-analytics-app
+    env: node
+    buildCommand: "npm install"
+    startCommand: "node server/analytics.js"

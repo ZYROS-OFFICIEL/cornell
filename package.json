@@ -1,0 +1,11 @@
+{
+  "name": "my-analytics-app",
+  "version": "1.0.0",
+  "main": "server/analytics.js",
+  "scripts": {
+    "start": "node server/analytics.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
